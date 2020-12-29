@@ -1,5 +1,7 @@
 import base64, zlib, hashlib
 import json, re
+from .mercenaries import Mercenaries, Mercenary
+from .Sci import Sci
 
 class CH:
     '''
@@ -85,11 +87,27 @@ class CH:
     
     @property
     def gold(self):
-        return self.__decoded['gold']
+        return Sci(self.__decoded['gold'])
     @gold.setter
-    def gold(self, val: str):
-        if re.search(r'\d\.\d+e\d+', val): # 1.0e100
-            self.__decoded['gold'] = val
+    def gold(self, val):
+        if isinstance(val, str):
+            if not re.search(r'\d\.\d+e\d+', val): # 1.0e100
+                raise ValueError('Gold must be Scientific notation.')
+        elif isinstance(val, Sci):
+            val = str(val)
+        self.__decoded['gold'] = val
+
+    @property
+    def primalSouls(self):
+        return Sci(self.__decoded['primalSouls'])
+    @primalSouls.setter
+    def primalSouls(self, val):
+        if isinstance(val, str):
+            if not re.search(r'\d\.\d+e\d+', val): # 1.0e100
+                raise ValueError('Primal Souls must be Scientific notation.')
+        elif isinstance(val, Sci):
+            val = str(val)
+        self.__decoded['primalSouls'] = val
     
     @property
     def rubies(self):
@@ -123,10 +141,13 @@ class CH:
     
     @property
     def mercenaries(self):
-        return list(self.__decoded['mercenaries']['mercenaries'].values())
+        return Mercenaries(self.__decoded['mercenaries'])
     @mercenaries.setter
-    def mercenaries(self, mercs: list):
-        for ind, merc in enumerate(mercs):
-            self.__decoded['mercenaries']['mercenaries'][str(ind)] = merc
+    def mercenaries(self, mercs):
+        for merc_ind, merc in enumerate(mercs):
+            if isinstance(merc, Mercenary):
+                self.__decoded['mercenaries']['mercenaries'][str(merc_ind)] = merc.info
+            elif isinstance(merc, dict):
+                self.__decoded['mercenaries']['mercenaries'][str(merc_ind)] = merc
             
         self.__decoded['mercenaryCount'] = len(mercs)
